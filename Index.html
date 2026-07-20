@@ -1,292 +1,405 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 
 <head>
-  <base target="_top">
-  <meta charset="UTF-8">
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <base target="_top">
+    <meta charset="UTF-8">
 
-  <style>
-    body{
-      background:#f5f6fa;
-    }
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
 
-    .card{
-      border-radius:15px;
-      border:none;
-      box-shadow:0 2px 10px rgba(0,0,0,.08);
-    }
+    <title>Dashboard Điểm Danh</title>
 
-    h2{
-      font-weight:bold;
-    }
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
 
-    .table{
-      background:#fff;
-    }
-
-    .last-update{
-      font-size:14px;
-      color:#666;
-    }
-  </style>
+    <?!= HtmlService.createHtmlOutputFromFile("Style").getContent(); ?>
 
 </head>
 
 <body>
 
-<div class="container mt-4">
+<div class="container-fluid p-4">
 
-<h2 class="text-center mb-4">
-📋 Dashboard Điểm Danh
-</h2>
+    <!-- ==========================
+         HEADER
+    =========================== -->
 
-<div class="row g-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-<div class="col-md-4">
-<div class="card">
-<div class="card-body text-center">
-<h6>Tổng điểm danh</h6>
-<h2 id="total">0</h2>
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                📋 Dashboard Điểm Danh
+
+            </h2>
+
+            <small
+                id="updateTime"
+                class="text-muted">
+
+                Đang tải dữ liệu...
+
+            </small>
+
+        </div>
+
+        <button
+            class="btn btn-primary"
+            onclick="loadData()">
+
+            🔄 Làm mới
+
+        </button>
+
+    </div>
+
+    <!-- ==========================
+         CARD THỐNG KÊ
+    =========================== -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-2 col-lg-4 col-md-6">
+
+            <div class="card stat-card bg-total">
+
+                <div class="card-body text-center">
+
+                    <div>Tổng lượt</div>
+
+                    <div
+                        id="total"
+                        class="number">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-2 col-lg-4 col-md-6">
+
+            <div class="card stat-card bg-ontime">
+
+                <div class="card-body text-center">
+
+                    <div>Đúng giờ</div>
+
+                    <div
+                        id="onTime"
+                        class="number">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-2 col-lg-4 col-md-6">
+
+            <div class="card stat-card bg-late-ok">
+
+                <div class="card-body text-center">
+
+                    <div>Trễ có phép</div>
+
+                    <div
+                        id="latePermission"
+                        class="number">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-2 col-lg-4 col-md-6">
+
+            <div class="card stat-card bg-late-no">
+
+                <div class="card-body text-center">
+
+                    <div>Trễ không phép</div>
+
+                    <div
+                        id="lateNoPermission"
+                        class="number">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-2 col-lg-4 col-md-6">
+
+            <div class="card stat-card bg-absent-ok">
+
+                <div class="card-body text-center">
+
+                    <div>Vắng có phép</div>
+
+                    <div
+                        id="absentPermission"
+                        class="number">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-2 col-lg-4 col-md-6">
+
+            <div class="card stat-card bg-absent-no">
+
+                <div class="card-body text-center">
+
+                    <div>Vắng không phép</div>
+
+                    <div
+                        id="absentNoPermission"
+                        class="number">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ==========================
+         FILTER
+    =========================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-lg-4">
+
+                    <input
+                        id="search"
+                        class="form-control"
+                        type="text"
+                        placeholder="🔍 Tìm theo họ tên...">
+
+                </div>
+
+                <div class="col-lg-3">
+
+                    <select
+                        id="classFilter"
+                        class="form-select">
+
+                        <option value="">
+
+                            Tất cả lớp
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-lg-3">
+
+                    <select
+                        id="statusFilter"
+                        class="form-select">
+
+                        <option value="">
+
+                            Tất cả trạng thái
+
+                        </option>
+
+                        <option value="Đúng giờ">
+
+                            Đúng giờ
+
+                        </option>
+
+                        <option value="Trễ có phép">
+
+                            Trễ có phép
+
+                        </option>
+
+                        <option value="Trễ không phép">
+
+                            Trễ không phép
+
+                        </option>
+
+                        <option value="Vắng có phép">
+
+                            Vắng có phép
+
+                        </option>
+
+                        <option value="Vắng không phép">
+
+                            Vắng không phép
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-lg-2">
+
+                    <button
+                        class="btn btn-success w-100"
+                        onclick="loadData()">
+
+                        Cập nhật
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+      <!-- =====================================
+         DANH SÁCH ĐIỂM DANH HÔM NAY
+    ====================================== -->
+<!-- =====================================
+     DANH SÁCH ĐIỂM DANH HÔM NAY
+====================================== -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+
+            📋 Danh sách điểm danh hôm nay
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover mb-0">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="text-center">Ngày</th>
+
+                        <th class="text-center">Giờ</th>
+
+                        <th class="text-center">Họ và tên</th>
+
+                        <th class="text-center">Lớp</th>
+
+                        <th class="text-center">Trạng thái</th>
+
+                        <th class="text-center">Đi trễ</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tableBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+    
+    <!-- =====================================
+         THỐNG KÊ THEO LỚP
+    ====================================== -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            📊 Thống kê theo lớp
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover mb-0">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="text-center">Lớp</th>
+
+                        <th class="text-center">Đúng giờ</th>
+
+                        <th class="text-center">Trễ có phép</th>
+
+                        <th class="text-center">Trễ không phép</th>
+
+                        <th class="text-center">Vắng có phép</th>
+
+                        <th class="text-center">Vắng không phép</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="classSummaryBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>
-</div>
-</div>
 
-<div class="col-md-4">
-<div class="card">
-<div class="card-body text-center">
-<h6>Đúng giờ</h6>
-<h2 id="ontime" class="text-success">0</h2>
-</div>
-</div>
-</div>
+<!-- =====================================
+     JAVASCRIPT
+===================================== -->
 
-<div class="col-md-4">
-<div class="card">
-<div class="card-body text-center">
-<h6>Đi trễ</h6>
-<h2 id="late" class="text-danger">0</h2>
-</div>
-</div>
-</div>
-
-</div>
-
-<div class="row align-items-end mb-3">
-
-<div class="col-md-4">
-
-<label class="form-label fw-bold">
-Lọc theo lớp
-</label>
-
-<select id="classFilter"
-        class="form-select"
-        onchange="filterClass()">
-
-<option value="ALL">
-Tất cả lớp
-</option>
-
-</select>
-
-</div>
-
-<div class="col-md-8 text-end">
-
-<div class="last-update">
-🕒 Cập nhật lần cuối:
-<span id="lastUpdate">--:--:--</span>
-</div>
-
-</div>
-
-</div>
-
-<div class="table-responsive">
-
-<table class="table table-bordered table-hover align-middle">
-
-<thead class="table-dark">
-
-<tr>
-
-<th width="60">#</th>
-<th>Họ tên</th>
-<th width="120">Lớp</th>
-<th width="120">Ngày</th>
-<th width="110">Giờ</th>
-<th width="120">Trạng thái</th>
-<th width="100">Trễ</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tbody">
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-<script>
-
-let allData=[];
-
-// tải lần đầu
-loadData();
-
-// tự cập nhật mỗi 10 giây
-setInterval(loadData,10000);
-
-function loadData(){
-
-    google.script.run
-    .withSuccessHandler(updateData)
-    .getAttendance();
-
-}
-
-function updateData(data){
-
-    allData=data.list;
-
-    let select=document.getElementById("classFilter");
-
-    let oldValue=select.value;
-
-    // Chỉ tạo danh sách lớp một lần
-    if(select.options.length===1){
-
-        let classes=[...new Set(allData.map(x=>x.className))].sort();
-
-        classes.forEach(c=>{
-
-            select.innerHTML+=
-            `<option value="${c}">${c}</option>`;
-
-        });
-
-    }
-
-    if(oldValue){
-        select.value=oldValue;
-    }
-
-    document.getElementById("lastUpdate").innerHTML=
-    new Date().toLocaleTimeString("vi-VN");
-
-    filterClass();
-
-}
-
-function filterClass(){
-
-    let cls=document.getElementById("classFilter").value;
-
-    let now=new Date();
-
-    let today=
-
-        String(now.getDate()).padStart(2,"0")+"/"+
-        String(now.getMonth()+1).padStart(2,"0")+"/"+
-        now.getFullYear();
-
-    let list=allData.filter(x=>x.date===today);
-
-    if(cls!=="ALL"){
-
-        list=list.filter(x=>x.className===cls);
-
-    }
-
-    document.getElementById("total").innerHTML=list.length;
-
-    document.getElementById("ontime").innerHTML=
-
-        list.filter(x=>x.status==="Đúng giờ").length;
-
-    document.getElementById("late").innerHTML=
-
-        list.filter(x=>x.status==="Đi trễ").length;
-
-    render(list);
-
-}
-
-function render(list){
-
-    let html="";
-
-    list.forEach((x,i)=>{
-
-        html+=`
-
-<tr>
-
-<td>${i+1}</td>
-
-<td>${x.name}</td>
-
-<td>${x.className}</td>
-
-<td>${x.date}</td>
-
-<td>${x.time}</td>
-
-<td>
-
-${
-x.status==="Đi trễ"
-
-?'<span class="badge bg-danger">Đi trễ</span>'
-
-:'<span class="badge bg-success">Đúng giờ</span>'
-}
-
-</td>
-
-<td>
-
-${x.lateMinute}
-
-</td>
-
-</tr>
-
-`;
-
-    });
-
-    if(list.length===0){
-
-        html=`
-
-<tr>
-
-<td colspan="7"
-class="text-center text-muted">
-
-Không có dữ liệu điểm danh hôm nay.
-
-</td>
-
-</tr>
-
-`;
-
-    }
-
-    document.getElementById("tbody").innerHTML=html;
-
-}
-
-</script>
+<?!= HtmlService.createHtmlOutputFromFile("JavaScript").getContent(); ?>
 
 </body>
 
