@@ -1,0 +1,408 @@
+<script>
+
+let attendanceData = [];
+let classSummary = [];
+
+//======================================
+// Load dữ liệu
+//======================================
+
+function loadData(){
+
+    google.script.run
+
+        .withSuccessHandler(renderDashboard)
+
+        .withFailureHandler(function(err){
+
+            console.error(err);
+
+            alert("Không thể tải dữ liệu!");
+
+        })
+
+        .getAttendance();
+
+}
+
+//======================================
+// Render Dashboard
+//======================================
+
+function renderDashboard(data){
+
+    attendanceData = data.list || [];
+
+    classSummary = data.classSummary || [];
+
+    document.getElementById("total").innerHTML =
+        data.total;
+
+    document.getElementById("onTime").innerHTML =
+        data.onTime;
+
+    document.getElementById("latePermission").innerHTML =
+        data.latePermission;
+
+    document.getElementById("lateNoPermission").innerHTML =
+        data.lateNoPermission;
+
+    document.getElementById("absentPermission").innerHTML =
+        data.absentPermission;
+
+    document.getElementById("absentNoPermission").innerHTML =
+        data.absentNoPermission;
+
+    document.getElementById("updateTime").innerHTML =
+        "Cập nhật lúc: " +
+        new Date().toLocaleTimeString("vi-VN");
+
+    loadClassFilter();
+
+    renderTable();
+
+    renderClassSummary();
+
+}
+
+//======================================
+// Danh sách lớp
+//======================================
+
+function loadClassFilter(){
+
+    const select =
+        document.getElementById("classFilter");
+
+    const oldValue =
+        select.value;
+
+    const classes = [
+
+        ...new Set(
+
+            attendanceData.map(
+
+                x => x.className
+
+            )
+
+        )
+
+    ].sort();
+
+    select.innerHTML =
+        "<option value=''>Tất cả lớp</option>";
+
+    classes.forEach(function(item){
+
+        select.innerHTML +=
+
+        `<option value="${item}">
+
+            ${item}
+
+        </option>`;
+
+    });
+
+    if(classes.includes(oldValue)){
+
+        select.value = oldValue;
+
+    }
+
+}
+
+//======================================
+// Badge trạng thái
+//======================================
+
+function badge(status){
+
+    switch(status){
+
+        case "Đúng giờ":
+
+            return `<span class="badge bg-success">
+                        Đúng giờ
+                    </span>`;
+
+        case "Trễ có phép":
+
+            return `<span class="badge bg-success">
+                        Trễ có phép
+                    </span>`;
+
+        case "Trễ không phép":
+
+            return `<span class="badge bg-danger">
+                        Trễ không phép
+                    </span>`;
+
+        case "Vắng có phép":
+
+            return `<span class="badge bg-success">
+                        Vắng có phép
+                    </span>`;
+
+        case "Vắng không phép":
+
+            return `<span class="badge bg-danger">
+                        Vắng không phép
+                    </span>`;
+
+        default:
+
+            return status;
+
+    }
+
+}
+
+//======================================
+// Render bảng điểm danh
+//======================================
+
+function renderTable(){
+
+    const keyword =
+        document
+        .getElementById("search")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const classFilter =
+        document
+        .getElementById("classFilter")
+        .value;
+
+    const statusFilter =
+        document
+        .getElementById("statusFilter")
+        .value;
+
+    let html = "";
+
+    attendanceData
+
+    .filter(function(item){
+
+        const okName =
+            item.name
+            .toLowerCase()
+            .includes(keyword);
+
+        const okClass =
+            classFilter=="" ||
+            item.className==classFilter;
+
+        const okStatus =
+            statusFilter=="" ||
+            item.status==statusFilter;
+
+        return okName && okClass && okStatus;
+
+    })
+
+    .forEach(function(item){
+
+        html += `
+
+        <tr>
+
+            <td>${item.date}</td>
+
+            <td>${item.time}</td>
+
+            <td>${item.name}</td>
+
+            <td>${item.className}</td>
+
+            <td>${badge(item.status)}</td>
+
+            <td>${
+                item.lateMinute>0
+                ? item.lateMinute+" phút"
+                : "-"
+            }</td>
+
+        </tr>
+
+        `;
+
+    });
+
+      //======================================
+    // Không có dữ liệu
+    //======================================
+
+    if(html==""){
+
+        html = `
+
+        <tr>
+
+            <td colspan="6"
+                class="text-center text-muted">
+
+                Không có dữ liệu
+
+            </td>
+
+        </tr>
+
+        `;
+
+    }
+
+    document
+        .getElementById("tableBody")
+        .innerHTML = html;
+
+}
+
+//======================================
+// Thống kê theo lớp
+//======================================
+
+function renderClassSummary(){
+
+    let html = "";
+
+    classSummary.forEach(function(item){
+
+        html += `
+
+        <tr>
+
+            <td>
+
+                <strong>${item.className}</strong>
+
+            </td>
+
+            <td class="text-center">
+
+                <span class="badge bg-success">
+
+                    ${item.onTime}
+
+                </span>
+
+            </td>
+
+            <td class="text-center">
+
+                <span class="badge bg-success">
+
+                    ${item.latePermission}
+
+                </span>
+
+            </td>
+
+            <td class="text-center">
+
+                <span class="badge bg-danger">
+
+                    ${item.lateNoPermission}
+
+                </span>
+
+            </td>
+
+            <td class="text-center">
+
+                <span class="badge bg-success">
+
+                    ${item.absentPermission}
+
+                </span>
+
+            </td>
+
+            <td class="text-center">
+
+                <span class="badge bg-danger">
+
+                    ${item.absentNoPermission}
+
+                </span>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+    if(html==""){
+
+        html = `
+
+        <tr>
+
+            <td colspan="6"
+                class="text-center text-muted">
+
+                Không có dữ liệu
+
+            </td>
+
+        </tr>
+
+        `;
+
+    }
+
+    document
+        .getElementById("classSummaryBody")
+        .innerHTML = html;
+
+}
+
+//======================================
+// Event tìm kiếm
+//======================================
+
+document
+.getElementById("search")
+.addEventListener(
+    "keyup",
+    renderTable
+);
+
+document
+.getElementById("classFilter")
+.addEventListener(
+    "change",
+    renderTable
+);
+
+document
+.getElementById("statusFilter")
+.addEventListener(
+    "change",
+    renderTable
+);
+
+//======================================
+// Load lần đầu
+//======================================
+
+loadData();
+
+//======================================
+// Refresh tự động mỗi 5 giây
+//======================================
+
+setInterval(function(){
+
+    loadData();
+
+},5000);
+
+</script>
